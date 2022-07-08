@@ -152,8 +152,8 @@ IFS="$sp	$nl"
 # There are apparently some retarded systems that use ';' as a PATH separator!
 if test "${PATH_SEPARATOR+set}" != set; then
   PATH_SEPARATOR=:
-  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
-    (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
+  (PATH='/bin;/bin;/@unixroot/usr/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
+    (PATH='/bin:/bin:/@unixroot/usr/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
       PATH_SEPARATOR=';'
   }
 fi
@@ -212,7 +212,7 @@ func_path_progs ()
     done
     IFS=$_G_save_IFS
     test -z "$func_path_progs_result" && {
-      echo "no acceptable sed could be found in \$PATH" >&2
+      echo "no acceptable \'$1\' could be found in \$PATH" >&2
       exit 1
     }
 }
@@ -1356,7 +1356,7 @@ func_lt_ver ()
 {
     $debug_cmd
 
-    test "x$1" = x`func_sort_ver "$1" "$2" | $SED 1q`
+    test "x$1" = "x`func_sort_ver "$1" "$2" | $SED 1q`"
 }
 
 
@@ -2073,7 +2073,7 @@ include the following information:
        autoconf:       `($AUTOCONF --version) 2>/dev/null |$SED 1q`
 
 Report bugs to <bug-libtool@gnu.org>.
-GNU libtool home page: <http://www.gnu.org/software/libtool/>.
+GNU libtool home page: <http://www.gnu.org/s/libtool/>.
 General help using GNU software: <http://www.gnu.org/gethelp/>."
     exit 0
 }
@@ -3738,7 +3738,8 @@ The following components of LINK-COMMAND are treated specially:
   -no-undefined     declare that a library does not refer to external symbols
   -o OUTPUT-FILE    create OUTPUT-FILE from the specified objects
   -objectlist FILE  use a list of object files found in FILE to specify objects
-  -os2dllname NAME  force a short DLL name on OS/2 (no effect on other OSes)
+  -shortname NAME   override DLL name (effective only on OS/2)
+  -buildlevel STR   buildlevel string for the DLL file (effective only on OS/2)
   -precious-files-regex REGEX
                     don't remove output files matching REGEX
   -release RELEASE  specify package release information
@@ -3900,7 +3901,7 @@ func_mode_execute ()
       if eval "test -z \"\$$shlibpath_var\""; then
 	eval "$shlibpath_var=\"\$dir\""
       else
-	eval "$shlibpath_var=\"\$dir:\$$shlibpath_var\""
+	eval "$shlibpath_var=\"\$dir\$PATH_SEPARATOR\$$shlibpath_var\""
       fi
     done
 
@@ -4339,8 +4340,18 @@ func_mode_install ()
 	    # so we also need to try rm && ln -s.
 	    for linkname
 	    do
-	      test "$linkname" != "$realname" \
-		&& func_show_eval "(cd $destdir && { $LN_S -f $realname $linkname || { $RM $linkname && $LN_S $realname $linkname; }; })"
+	      if test "$linkname" != "$realname"; then
+		case $host_os in
+		os2*)
+		  # Create import libraries instead of links on OS/2
+		  eval shared_ext=\"$shrext_cmds\"
+		  func_show_eval "(emximp -o $destdir/$linkname $dir/${realname%%$shared_ext}.def)"
+		  ;;
+		*)
+		  func_show_eval "(cd $destdir && { $LN_S -f $realname $linkname || { $RM $linkname && $LN_S $realname $linkname; }; })"
+		  ;;
+		esac
+	      fi
 	    done
 	  fi
 
@@ -6492,7 +6503,7 @@ func_mode_link ()
     $debug_cmd
 
     case $host in
-    *-*-cygwin* | *-*-mingw* | *-*-pw32* | *-*-os2* | *-cegcc*)
+    *-*-cygwin* | *-*-mingw* | *-*-pw32* | *-cegcc*)
       # It is impossible to link a dll without this setting, and
       # we shouldn't force the makefile maintainer to figure out
       # what system we are compiling for in order to pass an extra
@@ -6505,6 +6516,15 @@ func_mode_link ()
       # -no-undefined on the libtool link line when we can be certain
       # that all symbols are satisfied, otherwise we get a static library.
       allow_undefined=yes
+      ;;
+    *-*-os2*)
+      # OS/2 is like Windows (see above).  It is the expected behavior to
+      # not build a static library when the DLL cannot be built due to
+      # undefined symbols.
+      allow_undefined=no
+
+      # Provide a default value for -buildlevel if available.
+      test -n "$LT_BUILDLEVEL" && buildlevel="$LT_BUILDLEVEL"
       ;;
     *)
       allow_undefined=yes
@@ -6544,7 +6564,6 @@ func_mode_link ()
     module=no
     no_install=no
     objs=
-    os2dllname=
     non_pic_objects=
     precious_files_regex=
     prefer_static_libs=no
@@ -6802,11 +6821,6 @@ func_mode_link ()
 	  prev=
 	  continue
 	  ;;
-	os2dllname)
-	  os2dllname=$arg
-	  prev=
-	  continue
-	  ;;
 	precious_regex)
 	  precious_files_regex=$arg
 	  prev=
@@ -6836,6 +6850,16 @@ func_mode_link ()
 	    *) func_append xrpath " $arg" ;;
 	    esac
 	  fi
+	  prev=
+	  continue
+	  ;;
+	shortname)
+	  shortname_cmds='$ECHO '"$arg"' | cut -b -$(( 8-${#release}-${#versuffix} ))'
+	  prev=
+	  continue
+	  ;;
+	buildlevel)
+	  buildlevel=$arg
 	  prev=
 	  continue
 	  ;;
@@ -7116,11 +7140,6 @@ func_mode_link ()
 	continue
 	;;
 
-      -os2dllname)
-	prev=os2dllname
-	continue
-	;;
-
       -o) prev=output ;;
 
       -precious-files-regex)
@@ -7166,6 +7185,16 @@ func_mode_link ()
 
       -shared)
 	# The effects of -shared are defined in a previous loop.
+	continue
+	;;
+
+      -shortname | -os2dllname)
+	prev=shortname
+	continue
+	;;
+
+      -buildlevel)
+	prev=buildlevel
 	continue
 	;;
 
@@ -7301,6 +7330,17 @@ func_mode_link ()
 	  func_quote_for_eval "$arg"
 	  arg=$func_quote_for_eval_result
         fi
+	;;
+
+      # OS/2 uses -Zxxx to specify OS/2-specific options
+      -Z*)
+	compiler_flags="$compiler_flags $arg"
+	func_append compile_command " $arg"
+	func_append finalize_command " $arg"
+	case $arg in
+	-Zlinker | -Zstack) prev=xcompiler;;
+	esac
+	continue
 	;;
 
       # Some other compiler flag.
@@ -7651,33 +7691,66 @@ func_mode_link ()
 	    # If $allow_libtool_libs_with_static_runtimes && $deplib is a stdlib,
 	    # We need to do some special things here, and not later.
 	    if test yes = "$allow_libtool_libs_with_static_runtimes"; then
-	      case " $predeps $postdeps " in
-	      *" $deplib "*)
-		if func_lalib_p "$lib"; then
-		  library_names=
-		  old_library=
-		  func_source "$lib"
-		  for l in $old_library $library_names; do
-		    ll=$l
-		  done
-		  if test "X$ll" = "X$old_library"; then # only static version available
-		    found=false
-		    func_dirname "$lib" "" "."
-		    ladir=$func_dirname_result
-		    lib=$ladir/$old_library
-		    if test prog,link = "$linkmode,$pass"; then
-		      compile_deplibs="$deplib $compile_deplibs"
-		      finalize_deplibs="$deplib $finalize_deplibs"
-		    else
-		      deplibs="$deplib $deplibs"
-		      test lib = "$linkmode" && newdependency_libs="$deplib $newdependency_libs"
+	      case $host_os in
+	      os2*)
+		case " $predeps $postdeps " in
+		*" $deplib "*) ;;
+		*)
+		  if func_lalib_p "$lib"; then
+		    library_names=
+		    old_library=
+		    func_source "$lib"
+		    for l in $old_library $library_names; do
+		      ll=$l
+		    done
+		    if test "X$ll" = "X$old_library"; then # only static version available
+		      found=false
+		      func_dirname "$lib" "" "."
+		      ladir=$func_dirname_result
+		      lib=$ladir/$old_library
+		      if test prog,link = "$linkmode,$pass"; then
+			compile_deplibs="$deplib $compile_deplibs"
+			finalize_deplibs="$deplib $finalize_deplibs"
+		      else
+			deplibs="$deplib $deplibs"
+			test lib = "$linkmode" && newdependency_libs="$deplib $newdependency_libs"
+		      fi
+		      continue
 		    fi
-		    continue
 		  fi
-		fi
+ 		  ;;
+ 		esac
 		;;
-	      *) ;;
-	      esac
+	      *)
+	        case " $predeps $postdeps " in
+	        *" $deplib "*)
+		  if func_lalib_p "$lib"; then
+		    library_names=
+		    old_library=
+		    func_source "$lib"
+		    for l in $old_library $library_names; do
+		      ll=$l
+		    done
+		    if test "X$ll" = "X$old_library"; then # only static version available
+		      found=false
+		      func_dirname "$lib" "" "."
+		      ladir=$func_dirname_result
+		      lib=$ladir/$old_library
+		      if test prog,link = "$linkmode,$pass"; then
+		        compile_deplibs="$deplib $compile_deplibs"
+		        finalize_deplibs="$deplib $finalize_deplibs"
+		      else
+		        deplibs="$deplib $deplibs"
+		        test lib = "$linkmode" && newdependency_libs="$deplib $newdependency_libs"
+		      fi
+		      continue
+		    fi
+		  fi
+		  ;;
+	        *) ;;
+	        esac
+ 	        ;;
+ 	      esac # case $host_os in
 	    fi
 	  else
 	    # deplib doesn't seem to be a libtool library
@@ -7779,6 +7852,11 @@ func_mode_link ()
 		;;
 		pass_all)
 		  valid_a_lib=:
+		;;
+	      *os2*)
+		func_arith $current - $age
+		major=$func_arith_result
+		versuffix="$major"
 		;;
 	      esac
 	      if $valid_a_lib; then
@@ -8515,6 +8593,28 @@ func_mode_link ()
 		    fi
 		  fi
 		  ;;
+		*-*-os2*)
+		  depdepl=
+		  deplibrary_names=
+		  if test "$build_old_libs" != yes && test "$link_static" != yes ; then
+		    eval deplibrary_names=`${SED} -n -e 's/^library_names=\(.*\)$/\1/p' $deplib`
+		  fi
+		  if test -z "$deplibrary_names" ; then
+		    # fall back to static library
+		    eval deplibrary_names=`${SED} -n -e 's/^old_library=\(.*\)$/\1/p' $deplib`
+		  fi
+		  if test -n "$deplibrary_names" ; then
+		    for tmp in $deplibrary_names ; do
+		      depdepl=$tmp
+		    done
+		    if test -f "$absdir/$objdir/$depdepl" ; then
+		      depdepl="$absdir/$objdir/$depdepl"
+		      compiler_flags="$compiler_flags $depdepl"
+		      linker_flags="$linker_flags $depdepl"
+		    fi
+		  fi
+		  path=
+		  ;;
 		*)
 		  path=-L$absdir/$objdir
 		  ;;
@@ -8805,7 +8905,7 @@ func_mode_link ()
 	  #
 	  case $version_type in
 	  # correct linux to gnu/linux during the next big refactor
-	  darwin|freebsd-elf|linux|osf|windows|none)
+	  darwin|freebsd-elf|linux|osf|windows|os2|none)
 	    func_arith $number_major + $number_minor
 	    current=$func_arith_result
 	    age=$number_minor
@@ -8935,6 +9035,17 @@ func_mode_link ()
 	  func_arith $current - $age
 	  major=.$func_arith_result
 	  versuffix=$major.$age.$revision
+	  ;;
+
+	os2)
+	  # Use only major as suffix to save space in 8.3 file name format
+	  func_arith $current - $age
+	  major=$func_arith_result
+	  versuffix="$major"
+	  # Also shorten release AMAP by removing dashes and dots (same 8.3 limit)
+	  if test -n "$release"; then
+	    release=`$ECHO "${release}" | tr -d \"-.\"`
+	  fi
 	  ;;
 
 	osf)
@@ -10061,7 +10172,16 @@ EOF
 	# Create links to the real library.
 	for linkname in $linknames; do
 	  if test "$realname" != "$linkname"; then
-	    func_show_eval '(cd "$output_objdir" && $RM "$linkname" && $LN_S "$realname" "$linkname")' 'exit $?'
+	    case $host_os in
+	    os2*)
+	      # Create import libraries instead of links on OS/2
+	      eval shared_ext=\"$shrext_cmds\"
+	      func_show_eval '(emximp -o $output_objdir/$linkname $output_objdir/${realname%%$shared_ext}.def)' 'exit $?'
+	      ;;
+	    *)
+	      func_show_eval '(cd "$output_objdir" && $RM "$linkname" && $LN_S "$realname" "$linkname")' 'exit $?'
+	      ;;
+	    esac
 	  fi
 	done
 

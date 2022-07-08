@@ -2098,7 +2098,7 @@ test_dirent_condense_targets(apr_pool_t *pool)
           if (tests[i].paths[j] != NULL)
             {
               APR_ARRAY_PUSH(hdr, const char*) = tests[i].paths[j];
-#ifdef SVN_USE_DOS_PATHS
+#if defined(SVN_USE_DOS_PATHS) && !defined(__OS2__)
               /* For tests that are referencing a D: drive, specifically test
                  if such a drive exists on the system.  If not, skip the test
                  (svn_dirent_condense_targets will fail, because

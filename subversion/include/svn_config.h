@@ -213,8 +213,13 @@ typedef struct svn_config_t svn_config_t;
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define SVN_CONFIG__DEFAULT_GLOBAL_IGNORES_LINE_1 \
   "*.o *.lo *.la *.al .libs *.so *.so.[0-9]* *.a *.pyc *.pyo __pycache__"
+#ifndef __OS2__
 #define SVN_CONFIG__DEFAULT_GLOBAL_IGNORES_LINE_2 \
   "*.rej *~ #*# .#* .*.swp .DS_Store [Tt]humbs.db"
+#else
+#define SVN_CONFIG__DEFAULT_GLOBAL_IGNORES_LINE_2 \
+  "*.obj *.map *.lib *.exe *.dll *.res *.bak *.rej *~ #*# .#* .*.swp .DS_Store [Tt]humbs.db"
+#endif
 #endif
 
 #define SVN_CONFIG_DEFAULT_GLOBAL_IGNORES \

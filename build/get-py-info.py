@@ -79,7 +79,7 @@ def link_options():
   """Get list of Python linker options"""
 
   # Initialize config variables
-  assert os.name == "posix"
+#  assert os.name == "posix"
   options = sysconfig.get_config_var('LDSHARED').split()
 
   if sys.platform == 'darwin':

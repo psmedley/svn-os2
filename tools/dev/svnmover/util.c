@@ -23,7 +23,7 @@
 
 #include "svnmover.h"
 
-#ifdef HAVE_LINENOISE
+#if defined(HAVE_LINENOISE) && !defined(__OS2__)
 #include "linenoise/linenoise.c"
 #else
 #include "svn_cmdline.h"
@@ -35,7 +35,7 @@ svnmover_prompt_user(const char **result,
                      const char *prompt_str,
                      apr_pool_t *pool)
 {
-#ifdef HAVE_LINENOISE
+#if defined(HAVE_LINENOISE) && !defined(__OS2__)
   char *input;
 
   input = linenoise(prompt_str);

@@ -955,7 +955,7 @@ svn_ra_serf__context_run(svn_ra_serf__session_t *sess,
         {
           /* apr can't translate subversion errors to text */
           SVN_ERR_W(svn_error_create(status, NULL, NULL),
-                    _("Error running context"));
+                    _("Error running con3text"));
         }
 
       return svn_ra_serf__wrap_err(status, _("Error running context"));

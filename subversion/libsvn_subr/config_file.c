@@ -1529,6 +1529,9 @@ svn_config_ensure(const char *config_dir, apr_pool_t *pool)
         "# *.dsw = svn:eol-style=CRLF"                                       NL
         "# *.sh = svn:eol-style=native;svn:executable"                       NL
         "# *.txt = svn:eol-style=native;svn:keywords=Author Date Id Rev URL;"NL
+#ifdef __OS2__
+        "# *.cmd = svn:eol-style=native"                                     NL
+#endif
         "# *.png = svn:mime-type=image/png"                                  NL
         "# *.jpg = svn:mime-type=image/jpeg"                                 NL
         "# Makefile = svn:eol-style=native"                                  NL

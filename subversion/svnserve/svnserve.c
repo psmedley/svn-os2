@@ -92,7 +92,11 @@ enum run_mode {
 #if APR_HAS_FORK
 #if APR_HAS_THREADS
 
+#ifndef __OS2__
 #define CONNECTION_DEFAULT connection_mode_fork
+#else
+#define CONNECTION_DEFAULT connection_mode_thread
+#endif
 #define CONNECTION_HAVE_THREAD_OPTION
 
 #else /* ! APR_HAS_THREADS */

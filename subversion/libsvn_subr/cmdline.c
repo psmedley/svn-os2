@@ -1320,6 +1320,10 @@ find_editor_binary(const char **editor,
         }
     }
 
+#ifdef __OS2__
+  if (strcmp(e, "E") == 0)
+    e = SVN_CLIENT_EDITOR;
+#endif
 #ifdef SVN_CLIENT_EDITOR
   /* If still not found then fall back on the hard-coded default. */
   if (! e)
@@ -1373,7 +1377,8 @@ escape_path(apr_pool_t *pool, const char *orig_path)
     }
   else
     {
-#ifdef WIN32
+/*#ifdef WIN32*/
+#if defined(WIN32) || defined(__OS2__) /* 2020-10-04 */
       const char *p;
       /* Following the advice from
          https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way

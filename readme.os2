@@ -1,4 +1,4 @@
-Subversion 1.14.0 for OS/2 & eComStation
+Subversion 1.14.2 for OS/2 & eComStation
 
 The goal of the Subversion project is to build a version control system that is a compelling replacement for CVS in the open source community. The software is released under an Apache/BSD-style open source license.
 
@@ -6,8 +6,8 @@ Requires libc066.dll - which is available from ftp://ftp.netlabs.org/pub/gcc/lib
 
 This has had minimal testing, but I have used it successfully to check out code from several subversion repositories.
 
-Changes in 1.14.0
-- Updated codebased from 1.7.21 -> 1.14.0 - expect bugs :)
+Changes in 1.14.2
+- Updated codebased from 1.7.21 -> 1.14.2 - expect bugs :)
 
 All feedback is appreciated to paul@smedley.id.au, bugs should be entered in the bugtracker at http://mantis.smedley.id.au
 
@@ -16,4 +16,4 @@ Cheers,
 
 Paul Smedley
 Adelaide, Australia
-18th July, 2020
+8th July, 2022

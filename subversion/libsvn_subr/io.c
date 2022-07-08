@@ -216,7 +216,7 @@ cstring_to_utf8(const char **path_utf8,
                 const char *path_apr,
                 apr_pool_t *pool)
 {
-#if defined(WIN32) || defined(DARWIN)
+#if defined(WIN32) || defined(DARWIN) /*|| defined(__OS2__) */
   *path_utf8 = path_apr;
   return SVN_NO_ERROR;
 #else
@@ -231,7 +231,7 @@ cstring_from_utf8(const char **path_apr,
                   const char *path_utf8,
                   apr_pool_t *pool)
 {
-#if defined(WIN32) || defined(DARWIN)
+#if defined(WIN32) || defined(DARWIN) /*|| defined(__OS2__) */
   *path_apr = path_utf8;
   return SVN_NO_ERROR;
 #else
@@ -299,7 +299,7 @@ entry_name_to_utf8(const char **name_p,
                    const char *parent,
                    apr_pool_t *pool)
 {
-#if defined(WIN32) || defined(DARWIN)
+#if defined(WIN32) || defined(DARWIN) /*|| defined(__OS2__) */
   *name_p = apr_pstrdup(pool, name);
   return SVN_NO_ERROR;
 #else
@@ -680,7 +680,7 @@ svn_io_create_unique_link(const char **unique_name_p,
                           const char *suffix,
                           apr_pool_t *pool)
 {
-#ifdef HAVE_SYMLINK
+#if defined(HAVE_SYMLINK) && !defined(__OS2__x) /* whilst libc supports symlinks, OS/2's apr doesn't */
   unsigned int i;
   const char *unique_name;
   const char *unique_name_apr;
@@ -2444,7 +2444,7 @@ svn_io__is_finfo_read_only(svn_boolean_t *read_only,
                            apr_finfo_t *file_info,
                            apr_pool_t *pool)
 {
-#if defined(APR_HAS_USER) && !defined(WIN32) &&!defined(__OS2__)
+#if defined(APR_HAS_USER) && !defined(WIN32) /*&&!defined(__OS2__)*/
   apr_status_t apr_err;
   apr_uid_t uid;
   apr_gid_t gid;

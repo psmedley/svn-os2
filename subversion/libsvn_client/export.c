@@ -222,7 +222,7 @@ export_node(void *baton,
          filesystem privileges on Windows.
          Retrieving the file permissions with APR_FINFO_PROT | APR_FINFO_OWNER
          is documented to be 'incredibly expensive' */
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__OS2__)
       if (eib->revision->kind == svn_opt_revision_working)
         {
           apr_finfo_t finfo;

@@ -43,6 +43,7 @@ as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
 # Prefer a ksh shell builtin over an external printf program on Solaris,
 # but without wasting forks for bash or zsh.
 if test -z "$BASH_VERSION$ZSH_VERSION" \
+    && (test "X`uname`" != "XOS/2") \
     && (test "X`print -r -- $as_echo`" = "X$as_echo") 2>/dev/null; then
   as_echo='print -r --'
   as_echo_n='print -rn --'
@@ -74,8 +75,8 @@ fi
 # The user is always right.
 if test "${PATH_SEPARATOR+set}" != set; then
   PATH_SEPARATOR=:
-  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
-    (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
+  (PATH='/bin;/bin;/@unixroot/usr/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
+    (PATH='/bin:/bin:/@unixroot/usr/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
       PATH_SEPARATOR=';'
   }
 fi
@@ -1402,7 +1403,7 @@ do
   esac
   # Be sure to have absolute directory names.
   case $ac_val in
-    [\\/$]* | ?:[\\/]* )  continue;;
+    [\\/$]* | ?:[\\/]* | ?: )  continue;;
     NONE | '' ) case $ac_var in *prefix ) continue;; esac;;
   esac
   as_fn_error $? "expected an absolute directory name for --$ac_var: $ac_val"
@@ -2633,6 +2634,58 @@ See \`config.log' for more details" "$LINENO" 5; }
   fi
 done
 
+# Backslashes into forward slashes:
+# The following OS/2 specific code is performed AFTER config.site
+# has been loaded to allow users to change their environment there.
+# This strange code is necessary to deal with handling of backslashes by ksh.
+
+if test "$ac_emxsupport" != "no" -a "$ac_emxsupport" != "NO"; then
+  ac_save_IFS="$IFS"
+  IFS="\\"
+  ac_TEMP_PATH=
+  for ac_dir in $PATH; do
+    IFS=$ac_save_IFS
+    if test -z "$ac_TEMP_PATH"; then
+      ac_TEMP_PATH="$ac_dir"
+    else
+      ac_TEMP_PATH="$ac_TEMP_PATH/$ac_dir"
+    fi
+  done
+  export PATH="$ac_TEMP_PATH"
+  unset ac_TEMP_PATH
+
+  # Also, make sure that unix-like entries in PATH contain /@unixroot instead of
+  # hardcoded absolute paths to avoid these hardcoded paths in generated files.
+  if test -n "$UNIXROOT"; then
+    ac_save_IFS="$IFS"
+    ac_TEMP_UNIXROOT=`echo "$UNIXROOT" | tr [:upper:] [:lower:]`
+    IFS="$PATH_SEPARATOR"
+    ac_TEMP_PATH=
+    for ac_dir in `echo "$PATH" | tr [:upper:] [:lower:]`; do
+      IFS=$ac_save_IFS
+      case "$ac_dir" in
+        $ac_TEMP_UNIXROOT/usr/*) ac_dir="/@unixroot${ac_dir#$ac_TEMP_UNIXROOT}" ;;
+      esac
+      if test -z "$ac_TEMP_PATH"; then
+        ac_TEMP_PATH="$ac_dir"
+      else
+        ac_TEMP_PATH="$ac_TEMP_PATH$PATH_SEPARATOR$ac_dir"
+      fi
+    done
+    unset ac_TEMP_UNIXROOT
+    export PATH="$ac_TEMP_PATH"
+    unset ac_TEMP_PATH
+  fi
+fi
+
+# set ac_executable_extensions!
+if test "$ac_executable_extensions" = ""; then
+  if (sh -c : && sh.exe -c :) >/dev/null 2>/dev/null; then
+    ac_executable_extensions=".exe"
+    export ac_executable_extensions
+  fi
+fi
+
 if test -r "$cache_file"; then
   # Some versions of bash will fail to source /dev/null (special files
   # actually), so we avoid doing that.  DJGPP emulates it as a regular file.
@@ -2714,7 +2767,7 @@ fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -2795,7 +2848,7 @@ CUSERFLAGS="$CFLAGS"
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
@@ -3415,7 +3468,7 @@ else
   ac_save_c_werror_flag=$ac_c_werror_flag
    ac_c_werror_flag=yes
    ac_cv_prog_cc_g=no
-   CFLAGS="-g"
+            CFLAGS="$CFLAGS -g"
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -3578,7 +3631,7 @@ fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -3592,7 +3645,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -std=c90" >&5
@@ -3619,7 +3672,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -std=c89" >&5
@@ -3646,7 +3699,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -ansi" >&5
@@ -3675,7 +3728,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -3687,7 +3740,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -3699,7 +3752,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -3714,7 +3767,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -w" >&5
@@ -3743,7 +3796,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -3763,7 +3816,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Werror=unknown-warning-option" >&5
@@ -3792,7 +3845,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -3804,7 +3857,7 @@ CXXUSERFLAGS="$CXXFLAGS"
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 if test -z "$CXX"; then
   if test -n "$CCC"; then
@@ -4055,7 +4108,7 @@ fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -4069,7 +4122,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -std=c++11" >&5
@@ -4098,7 +4151,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -4113,7 +4166,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -w" >&5
@@ -4142,7 +4195,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -4162,7 +4215,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -Werror=unknown-warning-option" >&5
@@ -4191,7 +4244,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -4202,7 +4255,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to run the C preprocessor" >&5
 $as_echo_n "checking how to run the C preprocessor... " >&6; }
@@ -4333,7 +4386,7 @@ fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -8717,6 +8770,9 @@ tpf*)
 os2*)
   lt_cv_deplibs_check_method=pass_all
   ;;
+os2*)
+  lt_cv_deplibs_check_method=pass_all
+  ;;
 esac
 
 fi
@@ -10008,7 +10064,7 @@ else
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -10032,7 +10088,7 @@ rm -f core conftest.err conftest.$ac_objext \
      ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 fi
@@ -11344,7 +11400,7 @@ lt_save_CC=$CC
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -12255,27 +12311,27 @@ _LT_EOF
       hardcode_libdir_flag_spec='-L$libdir'
       hardcode_minus_L=yes
       allow_undefined_flag=unsupported
+      file_list_spec='@'
       shrext_cmds=.dll
-      archive_cmds='$ECHO "LIBRARY ${soname%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/$libname.def~
-	$ECHO "DESCRIPTION \"$libname\"" >> $output_objdir/$libname.def~
-	$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/$libname.def~
-	$ECHO EXPORTS >> $output_objdir/$libname.def~
-	emxexp $libobjs | $SED /"_DLL_InitTerm"/d >> $output_objdir/$libname.def~
-	$CC -Zdll -Zcrtdll -o $output_objdir/$soname $libobjs $deplibs $compiler_flags $output_objdir/$libname.def~
-	emximp -o $lib $output_objdir/$libname.def'
-      archive_expsym_cmds='$ECHO "LIBRARY ${soname%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/$libname.def~
-	$ECHO "DESCRIPTION \"$libname\"" >> $output_objdir/$libname.def~
-	$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/$libname.def~
-	$ECHO EXPORTS >> $output_objdir/$libname.def~
+      export_symbols_cmds='emxexp $libobjs $convenience | $SED -n -e '\''/^[	 ]*\(;.*\)\?$/n; s/^[	 ]*"\?_\([^	 "]\+\)"\?\(\([	 ]*\(;.*\)\?\)\|\([	 ]\+.\+\)\)$/\1/p'\'' | sort | uniq > $export_symbols'
+      archive_cmds='\$ECHO "LIBRARY ${realname%%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DESCRIPTION \"${buildlevel}${buildlevel:+@@}$libname\"" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO EXPORTS >> $output_objdir/${realname%%$shared_ext}.def~
+	emxexp $libobjs $convenience | $SED /"_DLL_InitTerm"/d >> $output_objdir/${realname%%$shared_ext}.def~
+	$CC -Zdll -Zomf -o $lib $libobjs $deplibs $compiler_flags $output_objdir/${realname%%$shared_ext}.def'
+      archive_expsym_cmds='\$ECHO "LIBRARY ${realname%%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DESCRIPTION \"${buildlevel}${buildlevel:+@@}$libname\"" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO EXPORTS >> $output_objdir/${realname%%$shared_ext}.def~
 	prefix_cmds="$SED"~
 	if test EXPORTS = "`$SED 1q $export_symbols`"; then
 	  prefix_cmds="$prefix_cmds -e 1d";
 	fi~
 	prefix_cmds="$prefix_cmds -e \"s/^\(.*\)$/_\1/g\""~
-	cat $export_symbols | $prefix_cmds >> $output_objdir/$libname.def~
-	$CC -Zdll -Zcrtdll -o $output_objdir/$soname $libobjs $deplibs $compiler_flags $output_objdir/$libname.def~
-	emximp -o $lib $output_objdir/$libname.def'
-      old_archive_From_new_cmds='emximp -o $output_objdir/${libname}_dll.a $output_objdir/$libname.def'
+	cat $export_symbols | $prefix_cmds >> $output_objdir/${realname%%$shared_ext}.def~
+	$CC -Zdll -Zomf -o $lib $libobjs $deplibs $compiler_flags $output_objdir/${realname%%$shared_ext}.def'
+      old_archive_From_new_cmds='emximp -o $output_objdir/${libname}_dll.$libext $output_objdir/${realname%%$shared_ext}.def'
       enable_shared_with_static_runtimes=yes
       ;;
 
@@ -13109,27 +13165,31 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       hardcode_libdir_flag_spec='-L$libdir'
       hardcode_minus_L=yes
       allow_undefined_flag=unsupported
+      file_list_spec='@'
+      if test "$AR" = emxomfar ; then
+          # set libext to lib (OMF format) as expected by some tools in OMF mode
+        libext=lib
+      fi
       shrext_cmds=.dll
-      archive_cmds='$ECHO "LIBRARY ${soname%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/$libname.def~
-	$ECHO "DESCRIPTION \"$libname\"" >> $output_objdir/$libname.def~
-	$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/$libname.def~
-	$ECHO EXPORTS >> $output_objdir/$libname.def~
-	emxexp $libobjs | $SED /"_DLL_InitTerm"/d >> $output_objdir/$libname.def~
-	$CC -Zdll -Zcrtdll -o $output_objdir/$soname $libobjs $deplibs $compiler_flags $output_objdir/$libname.def~
-	emximp -o $lib $output_objdir/$libname.def'
-      archive_expsym_cmds='$ECHO "LIBRARY ${soname%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/$libname.def~
-	$ECHO "DESCRIPTION \"$libname\"" >> $output_objdir/$libname.def~
-	$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/$libname.def~
-	$ECHO EXPORTS >> $output_objdir/$libname.def~
+      export_symbols_cmds='emxexp $libobjs $convenience | $SED -n -e '\''/^[	 ]*\(;.*\)\?$/n; s/^[	 ]*"\?_\([^	 "]\+\)"\?\(\([	 ]*\(;.*\)\?\)\|\([	 ]\+.\+\)\)$/\1/p'\'' | sort | uniq > $export_symbols'
+      archive_cmds='\$ECHO "LIBRARY ${realname%%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DESCRIPTION \"${buildlevel}${buildlevel:+@@}$libname\"" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO EXPORTS >> $output_objdir/${realname%%$shared_ext}.def~
+	emxexp $libobjs $convenience | $SED /"_DLL_InitTerm"/d >> $output_objdir/${realname%%$shared_ext}.def~
+	$CC -Zdll -Zomf -o $lib $libobjs $deplibs $compiler_flags $output_objdir/${realname%%$shared_ext}.def'
+      archive_expsym_cmds='\$ECHO "LIBRARY ${realname%%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DESCRIPTION \"${buildlevel}${buildlevel:+@@}$libname\"" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/${realname%%$shared_ext}.def~
+	\$ECHO EXPORTS >> $output_objdir/${realname%%$shared_ext}.def~
 	prefix_cmds="$SED"~
 	if test EXPORTS = "`$SED 1q $export_symbols`"; then
 	  prefix_cmds="$prefix_cmds -e 1d";
 	fi~
 	prefix_cmds="$prefix_cmds -e \"s/^\(.*\)$/_\1/g\""~
-	cat $export_symbols | $prefix_cmds >> $output_objdir/$libname.def~
-	$CC -Zdll -Zcrtdll -o $output_objdir/$soname $libobjs $deplibs $compiler_flags $output_objdir/$libname.def~
-	emximp -o $lib $output_objdir/$libname.def'
-      old_archive_From_new_cmds='emximp -o $output_objdir/${libname}_dll.a $output_objdir/$libname.def'
+	cat $export_symbols | $prefix_cmds >> $output_objdir/${realname%%$shared_ext}.def~
+	$CC -Zdll -Zomf -o $lib $libobjs $deplibs $compiler_flags $output_objdir/${realname%%$shared_ext}.def'
+      old_archive_From_new_cmds='emximp -o $output_objdir/${libname}_dll.$libext $output_objdir/${realname%%$shared_ext}.def'
       enable_shared_with_static_runtimes=yes
       ;;
 
@@ -13633,6 +13693,7 @@ BEGIN {RS = " "; FS = "/|\n";} {
 else
   sys_lib_search_path_spec="/lib /usr/lib /usr/local/lib"
 fi
+shortname_cmds=
 library_names_spec=
 libname_spec='lib$name'
 soname_spec=
@@ -14232,33 +14293,21 @@ openbsd* | bitrig*)
   ;;
 
 os2*)
+  version_type=os2
   libname_spec='$name'
-  version_type=windows
   shrext_cmds=.dll
   need_version=no
   need_lib_prefix=no
-  # OS/2 can only load a DLL with a base name of 8 characters or less.
-  soname_spec='`test -n "$os2dllname" && libname="$os2dllname";
-    v=$($ECHO $release$versuffix | tr -d .-);
-    n=$($ECHO $libname | cut -b -$((8 - ${#v})) | tr . _);
-    $ECHO $n$v`$shared_ext'
-  library_names_spec='${libname}_dll.$libext'
+  # OS/2 limits a length of a DLL basename up to 8 characters.
+  # So there is need to use a short name instead of a original name
+  # longer than 8 characters.
+  shortname_cmds='$ECHO $libname | cut -b -$(( 8-${#release}-${#versuffix} ))'
+  library_names_spec='`eval $shortname_cmds`${release}${versuffix}${shared_ext} ${libname}${release}${versuffix}_dll.$libext ${libname}_dll.$libext'
   dynamic_linker='OS/2 ld.exe'
   shlibpath_var=BEGINLIBPATH
-  sys_lib_search_path_spec="/lib /usr/lib /usr/local/lib"
+  shlibpath_overrides_runpath=yes
+  sys_lib_search_path_spec="/lib /usr/lib /usr/local/lib /@unixroot/usr/lib /@unixroot/usr/local/lib"
   sys_lib_dlsearch_path_spec=$sys_lib_search_path_spec
-  postinstall_cmds='base_file=`basename \$file`~
-    dlpath=`$SHELL 2>&1 -c '\''. $dir/'\''\$base_file'\''i; $ECHO \$dlname'\''`~
-    dldir=$destdir/`dirname \$dlpath`~
-    test -d \$dldir || mkdir -p \$dldir~
-    $install_prog $dir/$dlname \$dldir/$dlname~
-    chmod a+x \$dldir/$dlname~
-    if test -n '\''$stripme'\'' && test -n '\''$striplib'\''; then
-      eval '\''$striplib \$dldir/$dlname'\'' || exit \$?;
-    fi'
-  postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\''. $file; $ECHO \$dlname'\''`~
-    dlpath=$dir/\$dldll~
-    $RM \$dlpath'
   ;;
 
 osf3* | osf4* | osf5*)
@@ -14402,6 +14451,11 @@ func_munge_path_list sys_lib_dlsearch_path_spec "$LT_SYS_LIBRARY_PATH"
 
 # to be used as default LT_SYS_LIBRARY_PATH value in generated libtool
 configure_time_lt_sys_library_path=$LT_SYS_LIBRARY_PATH
+
+
+
+
+
 
 
 
@@ -15159,7 +15213,7 @@ fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 CC=$lt_save_CC
@@ -15170,7 +15224,7 @@ CC=$lt_save_CC
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to run the C++ preprocessor" >&5
 $as_echo_n "checking how to run the C++ preprocessor... " >&6; }
@@ -15297,7 +15351,7 @@ fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 else
@@ -15307,7 +15361,7 @@ fi
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 archive_cmds_need_lc_CXX=no
@@ -15971,31 +16025,34 @@ fi
 	;;
 
       os2*)
-	hardcode_libdir_flag_spec_CXX='-L$libdir'
-	hardcode_minus_L_CXX=yes
-	allow_undefined_flag_CXX=unsupported
-	shrext_cmds=.dll
-	archive_cmds_CXX='$ECHO "LIBRARY ${soname%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/$libname.def~
-	  $ECHO "DESCRIPTION \"$libname\"" >> $output_objdir/$libname.def~
-	  $ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/$libname.def~
-	  $ECHO EXPORTS >> $output_objdir/$libname.def~
-	  emxexp $libobjs | $SED /"_DLL_InitTerm"/d >> $output_objdir/$libname.def~
-	  $CC -Zdll -Zcrtdll -o $output_objdir/$soname $libobjs $deplibs $compiler_flags $output_objdir/$libname.def~
-	  emximp -o $lib $output_objdir/$libname.def'
-	archive_expsym_cmds_CXX='$ECHO "LIBRARY ${soname%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/$libname.def~
-	  $ECHO "DESCRIPTION \"$libname\"" >> $output_objdir/$libname.def~
-	  $ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/$libname.def~
-	  $ECHO EXPORTS >> $output_objdir/$libname.def~
+        hardcode_libdir_flag_spec_CXX='-L$libdir'
+        hardcode_minus_L_CXX=yes
+        allow_undefined_flag_CXX=unsupported
+        file_list_spec_CXX='@'
+        if test "$AR" = emxomfar ; then
+          # set libext to lib (OMF format) as expected by some tools in OMF mode
+          libext=lib
+        fi
+        shrext_cmds=.dll
+        archive_cmds_CXX='\$ECHO "LIBRARY ${realname%%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/${realname%%$shared_ext}.def~
+	  \$ECHO "DESCRIPTION \"${buildlevel}${buildlevel:+@@}$libname\"" >> $output_objdir/${realname%%$shared_ext}.def~
+	  \$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/${realname%%$shared_ext}.def~
+	  \$ECHO EXPORTS >> $output_objdir/${realname%%$shared_ext}.def~
+	  emxexp $libobjs | $SED /"_DLL_InitTerm"/d >> $output_objdir/${realname%%$shared_ext}.def~
+	  $CC -Zdll -Zomf -o $lib $libobjs $deplibs $compiler_flags $output_objdir/${realname%%$shared_ext}.def'
+        archive_expsym_cmds_CXX='\$ECHO "LIBRARY ${realname%%$shared_ext} INITINSTANCE TERMINSTANCE" > $output_objdir/${realname%%$shared_ext}.def~
+	  \$ECHO "DESCRIPTION \"${buildlevel}${buildlevel:+@@}$libname\"" >> $output_objdir/${realname%%$shared_ext}.def~
+	  \$ECHO "DATA MULTIPLE NONSHARED" >> $output_objdir/${realname%%$shared_ext}.def~
+	  \$ECHO EXPORTS >> $output_objdir/${realname%%$shared_ext}.def~
 	  prefix_cmds="$SED"~
 	  if test EXPORTS = "`$SED 1q $export_symbols`"; then
 	    prefix_cmds="$prefix_cmds -e 1d";
 	  fi~
 	  prefix_cmds="$prefix_cmds -e \"s/^\(.*\)$/_\1/g\""~
-	  cat $export_symbols | $prefix_cmds >> $output_objdir/$libname.def~
-	  $CC -Zdll -Zcrtdll -o $output_objdir/$soname $libobjs $deplibs $compiler_flags $output_objdir/$libname.def~
-	  emximp -o $lib $output_objdir/$libname.def'
-	old_archive_From_new_cmds_CXX='emximp -o $output_objdir/${libname}_dll.a $output_objdir/$libname.def'
-	enable_shared_with_static_runtimes_CXX=yes
+	  cat $export_symbols | $prefix_cmds >> $output_objdir/${realname%%$shared_ext}.def~
+	  $CC -Zdll -Zomf -o $lib $libobjs $deplibs $compiler_flags $output_objdir/${realname%%$shared_ext}.def'
+        old_archive_From_new_cmds_CXX='emximp -o $output_objdir/${libname}_dll.$libext $output_objdir/${realname%%$shared_ext}.def'
+        enable_shared_with_static_runtimes_CXX=yes
 	;;
 
       dgux*)
@@ -16775,6 +16832,17 @@ if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
 
     esac
   done
+
+  case $host_os in
+    os2*)
+      # Make sure that unix-like entries in paths contain /@unixroot instead of
+      # hardcoded absolute paths to avoid these hardcoded paths in generated files.
+      if test -n "$UNIXROOT"; then
+        compiler_lib_search_path_CXX=`echo "$compiler_lib_search_path_CXX" | sed "s|$UNIXROOT\/usr\/|\/@unixroot\/usr\/|gI"`
+        predep_objects_CXX=`echo "$predep_objects_CXX" | sed "s|$UNIXROOT\/usr\/|\/@unixroot\/usr\/|gI"`
+      fi
+      ;;
+  esac
 
   # Clean up.
   rm -f a.out a.exe
@@ -17597,6 +17665,7 @@ esac
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking dynamic linker characteristics" >&5
 $as_echo_n "checking dynamic linker characteristics... " >&6; }
 
+shortname_cmds=
 library_names_spec=
 libname_spec='lib$name'
 soname_spec=
@@ -18194,33 +18263,21 @@ openbsd* | bitrig*)
   ;;
 
 os2*)
+  version_type=os2
   libname_spec='$name'
-  version_type=windows
   shrext_cmds=.dll
   need_version=no
   need_lib_prefix=no
-  # OS/2 can only load a DLL with a base name of 8 characters or less.
-  soname_spec='`test -n "$os2dllname" && libname="$os2dllname";
-    v=$($ECHO $release$versuffix | tr -d .-);
-    n=$($ECHO $libname | cut -b -$((8 - ${#v})) | tr . _);
-    $ECHO $n$v`$shared_ext'
-  library_names_spec='${libname}_dll.$libext'
+  # OS/2 limits a length of a DLL basename up to 8 characters.
+  # So there is need to use a short name instead of a original name
+  # longer than 8 characters.
+  shortname_cmds='$ECHO $libname | cut -b -$(( 8-${#release}-${#versuffix} ))'
+  library_names_spec='`eval $shortname_cmds`${release}${versuffix}${shared_ext} ${libname}${release}${versuffix}_dll.$libext ${libname}_dll.$libext'
   dynamic_linker='OS/2 ld.exe'
   shlibpath_var=BEGINLIBPATH
-  sys_lib_search_path_spec="/lib /usr/lib /usr/local/lib"
+  shlibpath_overrides_runpath=yes
+  sys_lib_search_path_spec="/lib /usr/lib /usr/local/lib /@unixroot/usr/lib /@unixroot/usr/local/lib"
   sys_lib_dlsearch_path_spec=$sys_lib_search_path_spec
-  postinstall_cmds='base_file=`basename \$file`~
-    dlpath=`$SHELL 2>&1 -c '\''. $dir/'\''\$base_file'\''i; $ECHO \$dlname'\''`~
-    dldir=$destdir/`dirname \$dlpath`~
-    test -d \$dldir || mkdir -p \$dldir~
-    $install_prog $dir/$dlname \$dldir/$dlname~
-    chmod a+x \$dldir/$dlname~
-    if test -n '\''$stripme'\'' && test -n '\''$striplib'\''; then
-      eval '\''$striplib \$dldir/$dlname'\'' || exit \$?;
-    fi'
-  postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\''. $file; $ECHO \$dlname'\''`~
-    dlpath=$dir/\$dldll~
-    $RM \$dlpath'
   ;;
 
 osf3* | osf4* | osf5*)
@@ -18404,6 +18461,8 @@ configure_time_lt_sys_library_path=$LT_SYS_LIBRARY_PATH
 
 
 
+
+
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to hardcode library paths into programs" >&5
 $as_echo_n "checking how to hardcode library paths into programs... " >&6; }
 hardcode_action_CXX=
@@ -18465,7 +18524,7 @@ fi # test yes != "$_lt_caught_CXX_error"
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -20527,7 +20586,7 @@ $as_echo_n "checking for KWallet... " >&6; }
                   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
                   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -20547,7 +20606,7 @@ rm -f core conftest.err conftest.$ac_objext \
                   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
                   if test "$svn_lib_kwallet" = "yes"; then
@@ -21143,7 +21202,7 @@ $as_echo "$as_me: maintainer-mode: adding GCC warning flags" >&6;}
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Werror=implicit-function-declaration" >&5
@@ -21172,7 +21231,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21181,7 +21240,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Werror=declaration-after-statement" >&5
@@ -21210,7 +21269,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21219,7 +21278,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wextra-tokens" >&5
@@ -21248,7 +21307,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21257,7 +21316,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wnewline-eof" >&5
@@ -21286,7 +21345,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21295,7 +21354,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wshorten-64-to-32" >&5
@@ -21324,7 +21383,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21333,7 +21392,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wold-style-definition" >&5
@@ -21362,7 +21421,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21371,7 +21430,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wno-system-headers" >&5
@@ -21400,7 +21459,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21409,7 +21468,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wno-format-nonliteral" >&5
@@ -21438,7 +21497,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21447,7 +21506,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wmissing-variable-declarations" >&5
@@ -21476,7 +21535,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21485,7 +21544,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wno-unused-const-variable" >&5
@@ -21514,7 +21573,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21536,7 +21595,7 @@ $as_echo "$as_me: maintainer-mode: adding G++ warning flags" >&6;}
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -Wextra-tokens" >&5
@@ -21565,7 +21624,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21574,7 +21633,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -Wnewline-eof" >&5
@@ -21603,7 +21662,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21612,7 +21671,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -Wshorten-64-to-32" >&5
@@ -21641,7 +21700,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21650,7 +21709,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -Wno-system-headers" >&5
@@ -21679,7 +21738,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21710,7 +21769,7 @@ $as_echo "$as_me: Enabling debugging for C" >&6;}
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -fno-inline" >&5
@@ -21739,7 +21798,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21748,7 +21807,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -fno-omit-frame-pointer" >&5
@@ -21777,7 +21836,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21786,7 +21845,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -g3" >&5
@@ -21813,7 +21872,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -g2" >&5
@@ -21840,7 +21899,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -g" >&5
@@ -21869,7 +21928,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21880,7 +21939,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21891,7 +21950,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21905,7 +21964,7 @@ $as_echo "$as_me: Enabling debugging for C++" >&6;}
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -fno-inline" >&5
@@ -21934,7 +21993,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21943,7 +22002,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -fno-omit-frame-pointer" >&5
@@ -21972,7 +22031,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -21981,7 +22040,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -g3" >&5
@@ -22008,7 +22067,7 @@ $as_echo "no" >&6; }
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -g2" >&5
@@ -22035,7 +22094,7 @@ $as_echo "no" >&6; }
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -g" >&5
@@ -22064,7 +22123,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
@@ -22075,7 +22134,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
@@ -22086,7 +22145,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22115,7 +22174,7 @@ $as_echo "$as_me: Enabling optimizations for C (with debugging enabled)" >&6;}
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -O1" >&5
@@ -22142,7 +22201,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -O" >&5
@@ -22171,7 +22230,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22182,7 +22241,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22194,7 +22253,7 @@ $as_echo "$as_me: Enabling optimizations for C" >&6;}
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -O3" >&5
@@ -22221,7 +22280,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -O2" >&5
@@ -22248,7 +22307,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -O1" >&5
@@ -22275,7 +22334,7 @@ $as_echo "no" >&6; }
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -O" >&5
@@ -22304,7 +22363,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22315,7 +22374,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22326,7 +22385,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22337,7 +22396,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22346,7 +22405,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -Wno-clobbered" >&5
@@ -22375,7 +22434,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22391,7 +22450,7 @@ $as_echo "$as_me: Enabling optimizations for C++ (with debugging enabled)" >&6;}
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -O1" >&5
@@ -22418,7 +22477,7 @@ $as_echo "no" >&6; }
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -O" >&5
@@ -22447,7 +22506,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
@@ -22458,7 +22517,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22470,7 +22529,7 @@ $as_echo "$as_me: Enabling optimizations for C++" >&6;}
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -O3" >&5
@@ -22497,7 +22556,7 @@ $as_echo "no" >&6; }
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -O2" >&5
@@ -22524,7 +22583,7 @@ $as_echo "no" >&6; }
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -O1" >&5
@@ -22551,7 +22610,7 @@ $as_echo "no" >&6; }
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -O" >&5
@@ -22580,7 +22639,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
@@ -22591,7 +22650,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
@@ -22602,7 +22661,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
@@ -22613,7 +22672,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -22622,7 +22681,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CXX accepts -Wno-clobbered" >&5
@@ -22651,7 +22710,7 @@ rm -f core conftest.err conftest.$ac_objext \
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -27290,7 +27349,7 @@ $as_echo_n "checking for boostlib >= 1.58 ($WANT_BOOST_VERSION)... " >&6; }
     ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -27320,7 +27379,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -27409,7 +27468,7 @@ $as_echo "$as_me: We will use a staged boost library from $BOOST_ROOT" >&6;}
         ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
             cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -27439,7 +27498,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
         ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
     fi
@@ -27506,7 +27565,7 @@ else
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 			 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -27530,7 +27589,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
          ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_link='eval $CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
@@ -28045,6 +28104,7 @@ as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
 # Prefer a ksh shell builtin over an external printf program on Solaris,
 # but without wasting forks for bash or zsh.
 if test -z "$BASH_VERSION$ZSH_VERSION" \
+    && (test "X`uname`" != "XOS/2") \
     && (test "X`print -r -- $as_echo`" = "X$as_echo") 2>/dev/null; then
   as_echo='print -r --'
   as_echo_n='print -rn --'
@@ -28076,8 +28136,8 @@ fi
 # The user is always right.
 if test "${PATH_SEPARATOR+set}" != set; then
   PATH_SEPARATOR=:
-  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
-    (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
+  (PATH='/bin;/bin;/@unixroot/usr/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
+    (PATH='/bin:/bin:/@unixroot/usr/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
       PATH_SEPARATOR=';'
   }
 fi
@@ -28697,6 +28757,7 @@ runpath_var='`$ECHO "$runpath_var" | $SED "$delay_single_quote_subst"`'
 shlibpath_var='`$ECHO "$shlibpath_var" | $SED "$delay_single_quote_subst"`'
 shlibpath_overrides_runpath='`$ECHO "$shlibpath_overrides_runpath" | $SED "$delay_single_quote_subst"`'
 libname_spec='`$ECHO "$libname_spec" | $SED "$delay_single_quote_subst"`'
+shortname_cmds='`$ECHO "$shortname_cmds" | $SED "$delay_single_quote_subst"`'
 library_names_spec='`$ECHO "$library_names_spec" | $SED "$delay_single_quote_subst"`'
 soname_spec='`$ECHO "$soname_spec" | $SED "$delay_single_quote_subst"`'
 install_override_mode='`$ECHO "$install_override_mode" | $SED "$delay_single_quote_subst"`'
@@ -28906,6 +28967,7 @@ module_expsym_cmds \
 export_symbols_cmds \
 prelink_cmds \
 postlink_cmds \
+shortname_cmds \
 postinstall_cmds \
 postuninstall_cmds \
 finish_cmds \
@@ -29795,6 +29857,9 @@ shlibpath_overrides_runpath=$shlibpath_overrides_runpath
 
 # Format of library name prefix.
 libname_spec=$lt_libname_spec
+
+# Command to tailor DLL name to 8.3 format.
+shortname_cmds=$lt_shortname_cmds
 
 # List of archive names.  First name is the real one, the rest are links.
 # The last name is the one that the linker finds with -lNAME

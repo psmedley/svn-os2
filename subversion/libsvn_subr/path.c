@@ -83,7 +83,7 @@ is_canonical(const char *path,
           && (len == 0
               || (len == 1 && path[0] == '/')
               || (path[len-1] != '/')
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(WIN32) || defined(__CYGWIN__) || defined(__OS2__) 
               || svn_dirent_is_root(path, len)
 #endif
               ));

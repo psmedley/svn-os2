@@ -55,7 +55,7 @@
 #include "private/svn_client_private.h"
 #include "private/svn_delta_private.h"
 
-#ifdef HAVE_LINENOISE
+#if defined(HAVE_LINENOISE) && !defined(__OS2__)
 #include "linenoise/linenoise.h"
 #endif
 
@@ -4236,7 +4236,7 @@ parse_actions(apr_array_header_t **actions,
   return SVN_NO_ERROR;
 }
 
-#ifdef HAVE_LINENOISE
+#if defined(HAVE_LINENOISE) && !defined(__OS2__)
 /* A command-line completion callback for the 'Line Noise' interactive
  * prompting.
  *
@@ -4667,7 +4667,7 @@ sub_main(int *exit_code, int argc, const char *argv[], apr_pool_t *pool)
 
   if (interactive_actions)
     {
-#ifdef HAVE_LINENOISE
+#if defined(HAVE_LINENOISE) && !defined(__OS2__)
       linenoiseSetCompletionCallback(linenoise_completion);
 #endif
     }
