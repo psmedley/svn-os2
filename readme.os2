@@ -1,0 +1,19 @@
+Subversion 1.14.0 for OS/2 & eComStation
+
+The goal of the Subversion project is to build a version control system that is a compelling replacement for CVS in the open source community. The software is released under an Apache/BSD-style open source license.
+
+Requires libc066.dll - which is available from ftp://ftp.netlabs.org/pub/gcc/libc-0.6.6-csd6.zip
+
+This has had minimal testing, but I have used it successfully to check out code from several subversion repositories.
+
+Changes in 1.14.0
+- Updated codebased from 1.7.21 -> 1.14.0 - expect bugs :)
+
+All feedback is appreciated to paul@smedley.id.au, bugs should be entered in the bugtracker at http://mantis.smedley.id.au
+
+If you like this software and want to support continued ports, please consider donating via PayPal via the link in the footer at http://os2ports.smedley.id.au, or via the Arca Noae webstore at http://www.arcanoae.com/shop/os2-ports-paul-smedley
+Cheers,
+
+Paul Smedley
+Adelaide, Australia
+18th July, 2020
